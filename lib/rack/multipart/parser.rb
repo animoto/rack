@@ -136,7 +136,13 @@ module Rack
 
       def get_data(filename, body, content_type, name, head)
         data = nil
-        if filename == ""
+				if (!filename || filename=="") && content_type && body.is_a?(IO)
+          body.rewind
+
+          # Generic multipart cases, not coming from a form
+          data = {:type => content_type,
+                  :name => name, :tempfile => body, :head => head}
+        elsif filename == ""
           # filename is blank which means no file has been selected
           return data
         elsif filename
@@ -149,12 +155,6 @@ module Rack
           filename = filename.split(/[\/\\]/).last
 
           data = {:filename => filename, :type => content_type,
-                  :name => name, :tempfile => body, :head => head}
-        elsif !filename && content_type && body.is_a?(IO)
-          body.rewind
-
-          # Generic multipart cases, not coming from a form
-          data = {:type => content_type,
                   :name => name, :tempfile => body, :head => head}
         else
           data = body

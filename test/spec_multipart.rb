@@ -121,6 +121,32 @@ describe Rack::Multipart do
     params.keys.should.not.include "files"
   end
 
+  should "parse multipart upload with empty filename" do
+  	begin
+  		class Tempfile
+  			def is_a?(arg)
+  				if arg == IO
+  					true
+					else
+						super
+					end
+  			end
+  		end
+  	
+			env = Rack::MockRequest.env_for("/", multipart_fixture(:no_filename))
+			params = Rack::Multipart.parse_multipart(env)
+			params["files"][:type].should.equal "text/plain"
+			params["files"][:filename].should.equal nil
+			params["files"][:head].should.equal "Content-Disposition: form-data; " +
+				"name=\"files\"; filename=\"\"\r\n" +
+				"Content-Type: text/plain\r\n"
+			params["files"][:name].should.equal "files"
+			params["files"][:tempfile].read.should.equal "contents"
+		ensure
+		  puts "TODO: How do I clean this mofo up?  I don't have a proper stubbing framework here and Tempfile is stupid..."
+		end
+  end
+
   should "parse multipart/mixed" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:mixed_files))
     params = Rack::Utils::Multipart.parse_multipart(env)
