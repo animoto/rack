@@ -136,7 +136,7 @@ module Rack
 
       def get_data(filename, body, content_type, name, head)
         data = nil
-				if (!filename || filename=="") && content_type && body.is_a?(IO)
+				if (!filename || filename=="") && content_type && (body.is_a?(Tempfile) || body.is_a?(IO))
           body.rewind
 
           # Generic multipart cases, not coming from a form
